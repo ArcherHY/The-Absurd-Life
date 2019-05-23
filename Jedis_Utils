@@ -1,0 +1,46 @@
+
+
+  // Redis一般用于缓存数据,相对减轻服务器的压力,同时也提高一些常用数据的读写速度.
+  // 本工具类就是提供在Java代码中通过Jedis的封装来完成获取资源的
+  // 荒诞的人生总要给自己找点事情做  不然呢?
+  
+  // 首先导入相关依赖
+  import redis.clients.jedis.Jedis;
+  import redis.clients.jedis.JedisPool;
+  import redis.clients.jedis.JedisPoolConfig;
+  import java.io.InputStream;
+  import java.util.Properties;
+ // 工具类的编写
+ public class Jedis_Utils{
+ // 声明Jedis连接池对象
+ private JedisPool jedispool;
+ // 加载配置文件
+ // 因为只加载一次 所以采用了静态代码块
+  static{
+      // 通过类加载器获取字节码文件,调用其获取IO流的方法得到一个输入流用来加载配置文件. (配置文件推荐使用XML格式)
+      InputStream is = Jedis_Utils.class.getClassLoader().getResourceAsStream("jedis.properties");
+      // 初始化配置文件对象
+      Properties pro = new Properties();
+      // 读取数据  声明:(此处可能会触发IO流异常)
+      try{
+      pro.load(is);
+      }catch(IOException e){
+          e.printStackTrace();
+      }
+      // 初始化连接池配置对象
+      JedisPoolConfig config = new JedisPoolConfig();
+      // 设置最大连接数量
+      config.setMaxTotal(Integer.parseInt(pro.getProperty("maxTotal")));
+      // 设置同时最大连接数量
+      config.setMaxIdle(Integer.parseInt(pro.getProperty("maxIdle")));
+      // 再次初始化连接池对象  这次是有数据的哦  Url Port 最大连接数量 并发连接数量
+      jedisPool = new JedisPool(config, pro.getProperty("host"), Integer.parseInt(pro.getProperty("port")));
+      }
+      // 大功告成 可以进行方法声明了 
+      // 返回值: return this Jedis_Connection
+    public static Jedis getJedis() {
+        return jedisPool.getResource();
+        }
+    }
+ }
+  
